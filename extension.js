@@ -307,67 +307,20 @@ class CPUGraphIndicator extends PanelMenu.Button {
         );
     }
     
-    _updateCPUUsage() {
-        try {
-            const perCoreMode = this._settings.get_boolean('per-core-mode');
-            let usage;
-            
-            if (perCoreMode) {
-                // Get average of all cores
-                usage = Utils.getAverageCPUUsage();
-            } else {
-                // Get aggregate CPU usage
-                usage = Utils.getCPUUsage();
-            }
-            
-            // Validate the usage value
-            if (!Utils.isValidUsage(usage)) {
-                console.warn(`Invalid CPU usage value: ${usage}`);
-                usage = 0;
-            }
-            
-            // Add new value and manage history
-            this._cpuHistory.push(usage);
-            const historySize = Math.floor(
-                this._settings.get_int('graph-width') / this._settings.get_int('bar-width')
-            );
-            
-            // Remove old values if history is too long
-            while (this._cpuHistory.length > historySize) {
-                this._cpuHistory.shift();
-            }
-            
-            // Trigger repaint with smooth animation if enabled
-            if (this._settings.get_boolean('smooth-animation')) {
-                this._drawingArea.ease({
-                    opacity: 0.8,
-                    duration: 100,
-                    mode: 0, // EASE_OUT
-                    onComplete: () => {
-                        this._drawingArea.queue_repaint();
-                        this._drawingArea.ease({
-                            opacity: 1.0,
-                            duration: 100,
-                            mode: 1 // EASE_IN
-                        });
-                    }
-                });
-            } else {
-                this._drawingArea.queue_repaint();
-            }
-            
-        } catch (e) {
-            console.error(`Error updating CPU usage: ${e.message}`);
-            // Add a zero value to maintain graph continuity
-            this._cpuHistory.push(0);
+       _updateCPUUsage() {
+        const perCoreMode = this._settings.get_boolean('per-core-mode');
+        const usage = perCoreMode ? Utils.getAverageCPUUsage() : Utils.getCPUUsage();
+        
+        // Add new value and remove old ones
+        this._cpuHistory.push(usage);
+        const historySize = Math.floor(this._settings.get_int('graph-width') / this._settings.get_int('bar-width'));
+        
+        if (this._cpuHistory.length > historySize) {
+            this._cpuHistory.shift();
         }
-    }
-    
-    _stopUpdating() {
-        if (this._updateTimeoutId) {
-            GLib.source_remove(this._updateTimeoutId);
-            this._updateTimeoutId = null;
-        }
+        
+        // Trigger repaint
+        this._drawingArea.queue_repaint();
     }
     
     destroy() {
