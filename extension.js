@@ -21,6 +21,7 @@ class CPUGraphIndicator extends PanelMenu.Button {
         this._cpuHistory = [];
         this._updateTimeoutId = null;
         this._tooltip = null;
+        this._destroyed = false;
         
         this._connectSettings();
         this._createUI();
@@ -46,7 +47,9 @@ class CPUGraphIndicator extends PanelMenu.Button {
         
         settingsKeys.forEach(key => {
             const id = this._settings.connect(`changed::${key}`, () => {
-                this._onSettingsChanged();
+                if (!this._destroyed) {
+                    this._onSettingsChanged();
+                }
             });
             this._settingsConnections.push(id);
         });
@@ -205,12 +208,16 @@ class CPUGraphIndicator extends PanelMenu.Button {
             this._tooltip.text = text;
         }
         
-        const [stageX, stageY] = this._graphContainer.get_transformed_position();
-        this._tooltip.set_position(
-            stageX + this._graphContainer.width / 2 - this._tooltip.width / 2,
-            stageY - this._tooltip.height - 5
-        );
-        this._tooltip.show();
+        try {
+            const [stageX, stageY] = this._graphContainer.get_transformed_position();
+            this._tooltip.set_position(
+                stageX + this._graphContainer.width / 2 - this._tooltip.width / 2,
+                stageY - this._tooltip.height - 5
+            );
+            this._tooltip.show();
+        } catch (e) {
+            console.warn('Failed to position tooltip:', e.message);
+        }
     }
     
     _hideTooltip() {
@@ -220,29 +227,33 @@ class CPUGraphIndicator extends PanelMenu.Button {
     }
     
     _onRepaint(area) {
-        const cr = area.get_context();
-        const [width, height] = area.get_surface_size();
-        const barWidth = this._settings.get_int('bar-width');
-        
-        // Clear background
-        cr.setOperator(1); // CAIRO_OPERATOR_CLEAR
-        cr.paint();
-        cr.setOperator(0); // CAIRO_OPERATOR_OVER
-        
-        // Draw bars
-        const barCount = Math.min(this._cpuHistory.length, Math.floor(width / barWidth));
-        
-        for (let i = 0; i < barCount; i++) {
-            const usage = this._cpuHistory[this._cpuHistory.length - barCount + i];
-            const barHeight = Math.max(1, (usage / 100) * height);
-            const x = i * barWidth;
-            const y = height - barHeight;
+        try {
+            const cr = area.get_context();
+            const [width, height] = area.get_surface_size();
+            const barWidth = this._settings.get_int('bar-width');
             
-            // Set color based on usage and color scheme
-            this._setColorForUsage(cr, usage);
+            // Clear background
+            cr.setOperator(1); // CAIRO_OPERATOR_CLEAR
+            cr.paint();
+            cr.setOperator(0); // CAIRO_OPERATOR_OVER
             
-            cr.rectangle(x, y, barWidth - 1, barHeight);
-            cr.fill();
+            // Draw bars
+            const barCount = Math.min(this._cpuHistory.length, Math.floor(width / barWidth));
+            
+            for (let i = 0; i < barCount; i++) {
+                const usage = this._cpuHistory[this._cpuHistory.length - barCount + i];
+                const barHeight = Math.max(1, (usage / 100) * height);
+                const x = i * barWidth;
+                const y = height - barHeight;
+                
+                // Set color based on usage and color scheme
+                this._setColorForUsage(cr, usage);
+                
+                cr.rectangle(x, y, barWidth - 1, barHeight);
+                cr.fill();
+            }
+        } catch (e) {
+            console.error('Error in _onRepaint:', e.message);
         }
     }
     
@@ -301,29 +312,46 @@ class CPUGraphIndicator extends PanelMenu.Button {
             GLib.PRIORITY_DEFAULT,
             updateInterval,
             () => {
-                this._updateCPUUsage();
-                return GLib.SOURCE_CONTINUE;
+                if (!this._destroyed) {
+                    this._updateCPUUsage();
+                    return GLib.SOURCE_CONTINUE;
+                }
+                return GLib.SOURCE_REMOVE;
             }
         );
     }
     
-       _updateCPUUsage() {
-        const perCoreMode = this._settings.get_boolean('per-core-mode');
-        const usage = perCoreMode ? Utils.getAverageCPUUsage() : Utils.getCPUUsage();
-        
-        // Add new value and remove old ones
-        this._cpuHistory.push(usage);
-        const historySize = Math.floor(this._settings.get_int('graph-width') / this._settings.get_int('bar-width'));
-        
-        if (this._cpuHistory.length > historySize) {
-            this._cpuHistory.shift();
+    _stopUpdating() {
+        if (this._updateTimeoutId) {
+            GLib.source_remove(this._updateTimeoutId);
+            this._updateTimeoutId = null;
         }
-        
-        // Trigger repaint
-        this._drawingArea.queue_repaint();
+    }
+    
+    _updateCPUUsage() {
+        try {
+            const perCoreMode = this._settings.get_boolean('per-core-mode');
+            const usage = perCoreMode ? Utils.getAverageCPUUsage() : Utils.getCPUUsage();
+            
+            // Add new value and remove old ones
+            this._cpuHistory.push(usage);
+            const historySize = Math.floor(this._settings.get_int('graph-width') / this._settings.get_int('bar-width'));
+            
+            if (this._cpuHistory.length > historySize) {
+                this._cpuHistory.shift();
+            }
+            
+            // Trigger repaint
+            if (this._drawingArea && !this._destroyed) {
+                this._drawingArea.queue_repaint();
+            }
+        } catch (e) {
+            console.error('Error updating CPU usage:', e.message);
+        }
     }
     
     destroy() {
+        this._destroyed = true;
         this._stopUpdating();
         
         // Disconnect settings
@@ -347,21 +375,29 @@ export default class TopCPUGraphExtension extends Extension {
     enable() {
         console.log('Enabling CPU Graph extension');
         
-        this._settings = this.getSettings();
-        this._indicator = new CPUGraphIndicator(this._settings);
-        
-        const panelPosition = this._settings.get_string('panel-position');
-        Main.panel.addToStatusArea('cpu-graph', this._indicator, 1, panelPosition);
+        try {
+            this._settings = this.getSettings();
+            this._indicator = new CPUGraphIndicator(this._settings);
+            
+            const panelPosition = this._settings.get_string('panel-position');
+            Main.panel.addToStatusArea('cpu-graph', this._indicator, 1, panelPosition);
+        } catch (e) {
+            console.error('Error enabling CPU Graph extension:', e.message);
+        }
     }
     
     disable() {
         console.log('Disabling CPU Graph extension');
         
-        if (this._indicator) {
-            this._indicator.destroy();
-            this._indicator = null;
+        try {
+            if (this._indicator) {
+                this._indicator.destroy();
+                this._indicator = null;
+            }
+            
+            this._settings = null;
+        } catch (e) {
+            console.error('Error disabling CPU Graph extension:', e.message);
         }
-        
-        this._settings = null;
     }
 }

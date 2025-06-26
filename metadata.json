@@ -1,5 +1,5 @@
 {
-  "uuid": "",
+  "uuid": "cpu-graph@rohitkr150015.github.io",
   "name": "Top CPU Graph",
   "description": "Real-time CPU usage graph displayed in the GNOME Shell top panel. Shows live CPU activity with a smooth scrolling bar graph, color-coded by usage intensity. Click to open System Monitor.",
   "version": 1,
