@@ -1,0 +1,242 @@
+/* CPU Graph Container - Default */
+.cpu-graph-container {
+    margin: 4px 8px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.cpu-graph-container:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* CPU Graph Container - Transparent */
+.cpu-graph-container-transparent {
+    margin: 4px 8px;
+    border-radius: 4px;
+    background-color: transparent;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.cpu-graph-container-transparent:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* CPU Graph Container - Dark */
+.cpu-graph-container-dark {
+    margin: 4px 8px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+}
+
+.cpu-graph-container-dark:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* CPU Graph Container - Light */
+.cpu-graph-container-light {
+    margin: 4px 8px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.cpu-graph-container-light:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+    border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* CPU Graph Container - Glass Effect */
+.cpu-graph-container-glass {
+    margin: 4px 8px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.cpu-graph-container-glass:hover {
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.2) 0%, 
+        rgba(255, 255, 255, 0.1) 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+/* CPU Graph Drawing Area */
+.cpu-graph-area {
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+/* Tooltip Styling */
+.cpu-graph-tooltip {
+    background-color: rgba(0, 0, 0, 0.9);
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: monospace;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.2s ease;
+}
+
+/* Light theme tooltip */
+StLabel.cpu-graph-tooltip:backdrop,
+.light-theme .cpu-graph-tooltip {
+    background-color: rgba(255, 255, 255, 0.95);
+    color: #000000;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Animation classes for smooth transitions */
+.cpu-graph-container.smooth-animation {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cpu-graph-container.smooth-animation .cpu-graph-area {
+    transition: opacity 0.2s ease;
+}
+
+/* Focus and accessibility */
+.cpu-graph-container:focus {
+    outline: 2px solid rgba(53, 132, 228, 0.8);
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .cpu-graph-container {
+        border-width: 2px;
+        border-color: currentColor;
+    }
+    
+    .cpu-graph-tooltip {
+        border-width: 2px;
+        background-color: Canvas;
+        color: CanvasText;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .cpu-graph-container,
+    .cpu-graph-container-glass,
+    .cpu-graph-tooltip {
+        transition: none;
+    }
+    
+    .cpu-graph-container-glass:hover {
+        transform: none;
+    }
+}
+
+/* Panel button specific styling */
+.panel-button .cpu-graph-container {
+    margin: 0;
+}
+
+/* Different panel positions adjustments */
+.panel-left .cpu-graph-container {
+    margin-left: 0;
+}
+
+.panel-right .cpu-graph-container {
+    margin-right: 0;
+}
+
+.panel-center .cpu-graph-container {
+    margin: 4px 6px;
+}
+
+/* Small screen adaptations */
+@media (max-width: 1024px) {
+    .cpu-graph-container {
+        margin: 2px 4px;
+    }
+    
+    .cpu-graph-tooltip {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+}
+
+/* Error state styling */
+.cpu-graph-container.error {
+    background-color: rgba(255, 0, 0, 0.1);
+    border-color: rgba(255, 0, 0, 0.3);
+}
+
+.cpu-graph-container.error:hover {
+    background-color: rgba(255, 0, 0, 0.15);
+}
+
+/* Loading state styling */
+.cpu-graph-container.loading {
+    opacity: 0.6;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* RTL (Right-to-Left) language support */
+.cpu-graph-container:dir(rtl) {
+    margin-left: 8px;
+    margin-right: 4px;
+}
+
+/* Theme-specific overrides */
+.light-theme .cpu-graph-container {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.light-theme .cpu-graph-container:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .cpu-graph-container {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.dark-theme .cpu-graph-container:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Per-core mode adjustments */
+.cpu-graph-container.per-core-mode {
+    min-width: 80px;
+}
+
+.cpu-graph-container.per-core-mode .cpu-graph-area {
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.02) 50%, 
+        transparent 100%);
+}
